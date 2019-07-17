@@ -10,7 +10,7 @@ time.sleep(1)
 import pigpio
 
 # Connect the ESC in this GPIO pin
-ESC = 4
+ESC = 4 #Change to appropriate number later
 
 pi = pigpio.pi()
 pi.set_servo_pulsewidth(ESC, 0) 
@@ -18,14 +18,13 @@ pi.set_servo_pulsewidth(ESC, 0)
 # Max and min pulse width values of ESC
 max_value = 1900
 min_value = 1100
-print("If you are launching for the first time, select calibrate")
 print("Type the exact word for the function you want")
-print("calibrate OR manual OR control OR arm OR stop")
+print("manual OR control OR arm OR stop")
 
 
-# Manually program your ESC if required
+# Manually program your ESC if required (Kinda pointless cuz our control already does this)
 def manual_drive():
-    print("You have selected manual option so provide a value between 0 and you max value")
+    print("You have selected manual option so provide a value between 1100 and 1900")
     while True:
         inp = input()
         if inp == "stop":
@@ -38,35 +37,17 @@ def manual_drive():
             arm()
             break
         else:
-            pi.set_servo_pulsewidth(ESC, inp)
-
-
-# This is the auto calibration procedure of a normal ESC
-def calibrate():
-    pi.set_servo_pulsewidth(ESC, 0)
-    print("Disconnect the battery and press Enter")
-    inp = input()
-    if inp == '':
-        pi.set_servo_pulsewidth(ESC, max_value)
-        print("Connect the battery. You will here two beeps, then wait for a gradual falling tone. Once this has occurred, press Enter")
-        inp = input()
-        if inp == '':
-            print('This process should take around 20 seconds')
-            pi.set_servo_pulsewidth(ESC, min_value)
-            print("Sent pulse to ESC with a width value of " + min_value)
-            time.sleep(12)
-            print("Sending the next pulse with a width of 0")
-            pi.set_servo_pulsewidth(ESC, 0)
-            time.sleep(2)
-            print("Arming ESC now, sending another pulse with a width of " + min_value)
-            pi.set_servo_pulsewidth(ESC, min_value)
-            time.sleep(1)
-            control()
-
+            try:
+                inp = int(inp)
+                if inp < min_value:
+                    inp = min_value
+                elif inp > max_value:
+                    inp = max_value
+                pi.set_servo_pulsewidth(ESC, inp)
+            except:
+                print("Please enter a valid command")
 
 def control(): 
-    print("Starting the motor. If it is not calibrated and armed, restart by giving 'x'")
-    time.sleep(1)
     # Initial speed, 1500 = 0
     speed = 1500
     print("How To Control The Motor: Initial speed is 1500 (translates to 0 m/s).")
@@ -74,6 +55,7 @@ def control():
     print("A pulse width of 1100 and 1900 represents the fastest backwards and forwards speeds respectively")
     print("If a value between -800 and 800 is input, the value will be added to the current pulse width value, with overflows leading to the min_value or max_value")
     print("If a value between 1100 and 1900 is input, the value will become the new pulse width value")
+
     while True:
         pi.set_servo_pulsewidth(ESC, speed)
         inp = input()
