@@ -1,3 +1,10 @@
+#Main changes:
+#   i) added try and catches whenever int casting was done
+#  ii) got rid of calibration as our ESC does not (cannot?) perform one
+# iii) changed arm to work with our current ESC
+#Notes:
+#   i) we could get rid of manual drive as it is just a more restrictive control after the changes that you made
+#  ii) imo we can just automatically run arm at first with enter and switch to control after that...really dont need to give user any more option after that 
 # ESC Python program to run the ESC
 # Make sure your battery is not connected if you are going to calibrate it at first.
 
@@ -13,7 +20,7 @@ import pigpio
 ESC = 4 #Change to appropriate number later
 
 pi = pigpio.pi()
-pi.set_servo_pulsewidth(ESC, 0) 
+pi.set_servo_pulsewidth(ESC, 0) #Really dont know what this means...the numbers have to be between 1100 and 1900...maybe arm here instead?
 
 # Max and min pulse width values of ESC
 max_value = 1900
@@ -44,6 +51,7 @@ def manual_drive():
                 elif inp > max_value:
                     inp = max_value
                 pi.set_servo_pulsewidth(ESC, inp)
+                print("Current speed is: " + inp)
             except:
                 print("Please enter a valid command")
 
@@ -69,35 +77,36 @@ def control():
         elif inp == "arm":
             arm()
             break
-        elif -800 <= int(inp) <= 800:
-            speed += inp
-            if speed < min_value:
-                speed = min_value
-            elif speed > max_value:
-                speed = max_value
-        elif 1100 <= int(inp) <= 1900:
-            speed = inp
         else:
-            print("Please enter a valid command")
+            try:
+                inp = int(inp)
+                if -800 <= inp <= 800:
+                    speed += inp
+                    if speed < min_value:
+                        speed = min_value
+                    elif speed > max_value:
+                        speed = max_value
+                elif 1100 <= int(inp) <= 1900:
+                    speed = input
+                pi.set_servo_pulsewidth(ESC, speed)
+                print("Current speed is: " + speed)
+            except:
+                print("Please enter a valid command")
 
 
-# This is the arming procedure of an ESC
+# This is how to arm our ESC
 def arm():
     print("Connect the battery and press Enter")
     inp = input()
     if inp == '':
-        pi.set_servo_pulsewidth(ESC, 0)
-        time.sleep(1)
-        pi.set_servo_pulsewidth(ESC, max_value)
-        time.sleep(1)
-        pi.set_servo_pulsewidth(ESC, min_value)
+        pi.set_servo_pulsewidth(ESC, 1500)
         time.sleep(1)
         control() 
 
 
 # This will stop every action your Pi is performing for the ESC.
 def stop():
-    pi.set_servo_pulsewidth(ESC, 0)
+    pi.set_servo_pulsewidth(ESC, 1500)
     pi.stop()
 
 
@@ -105,8 +114,6 @@ def stop():
 inp = input()
 if inp == "manual":
     manual_drive()
-elif inp == "calibrate":
-    calibrate()
 elif inp == "arm":
     arm()
 elif inp == "control":
@@ -114,4 +121,4 @@ elif inp == "control":
 elif inp == "stop":
     stop()
 else:
-    print("You entered an invalid command, you must now restart the program :(")
+    print("You entered an invalid command, you must now restart the program :(") #Very good use of emojis...PogS
