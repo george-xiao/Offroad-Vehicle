@@ -12,7 +12,7 @@ import pigpio
 ESC = 4 # Change to appropriate number later
 
 pi = pigpio.pi()
-pi.set_servo_pulsewidth(ESC, 0) # Really dont know what this means...test this out and change to 1500 if it doesnt work
+pi.set_servo_pulsewidth(ESC, 1500)
 
 # Max and min pulse width values of ESC
 max_value = 1900
@@ -48,9 +48,9 @@ def control():
                     elif speed > max_value:
                         speed = max_value
                 elif 1100 <= inp <= 1900:
-                    speed = input
+                    speed = inp
                 pi.set_servo_pulsewidth(ESC, speed)
-                print("Current speed is: " + speed)
+                print("Current speed is: ", speed)
             except:
                 print("Please enter a valid command")
 
