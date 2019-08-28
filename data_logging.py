@@ -35,9 +35,9 @@ with open('data.csv', 'w', newline='') as f:
 	writer = csv.writer(f)
 	data_writer.writerow(['datetime', 'temperature','pressure','humidity', 'yaw','pitch','roll', 'mag_x','mag_y','mag_z', 'acc_x','acc_y','acc_z', 'gyro_x', 'gyro_y', 'gyro_z'])
 	while True:
-		data = get_sense_data()
-		delta = data[0] - timestamp
+		delta = datetime.now() - timestamp
 		if delta.seconds > delay:
+			data = get_sense_data()
 			writer.writerow(data)
 			timestamp = datetime.now()
 
