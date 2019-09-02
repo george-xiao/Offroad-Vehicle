@@ -6,8 +6,6 @@ bd = BlueDot()
 running = True
 robot = ElectronicSpeedController(27)
 
-
-#Calvin sucks even more
 # Function to move and steer the car
 # Uses the distance of the touch from the center of the Dot to determine the car's speed
 # (Future Implementation) Uses the placement of the finger to determine steering direction
