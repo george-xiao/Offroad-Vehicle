@@ -1,19 +1,23 @@
 from bluedot import BlueDot
 from ESC import ElectronicSpeedController
+from servo_motor import ServoMotor
 from signal import pause
 
 bd = BlueDot()
 running = True
+# pin 13 for GPIO 27
 robot = ElectronicSpeedController(27)
+# pin 12
+servo = ServoMotor(12)
 
 # Function to move and steer the car
 # Uses the distance of the touch from the center of the Dot to determine the car's speed
-# (Future Implementation) Uses the placement of the finger to determine steering direction
-# (Future Implementation) Uses the angle from 0 degrees to determine how hard to steer
+# Uses the placement of the finger to determine steering direction
+# Uses the angle from 0 degrees to determine how hard to steer
 def move(pos):
     if running:
+        servo.set_angle(pos.angle)
         robot.control(1500 + pos.y * 400)
-        # Need to write code for Servo steering
 
 
 # Function to stop the motor
@@ -41,6 +45,6 @@ bd.allow_pairing(60)
 bd.set_when_pressed(move)
 bd.set_when_moved(move)
 bd.set_when_released(stop)
-bd.set_when_double_press(power_button)
+bd.set_when_double_pressed(power_button)
 
 pause()
