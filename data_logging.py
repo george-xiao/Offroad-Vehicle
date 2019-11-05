@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import math
 
 class DataLogging:
-    def __init__():
+    def __init__(self):
         self.timestamp = datetime.now()
         self.delay = 3 # Delay in seconds
         self.sense = SenseHat()
@@ -36,7 +36,7 @@ class DataLogging:
                 orientation['yaw'],
                 orientation['pitch'],
                 orientation['roll'],
-                self.sense.get_compass_raw(),
+                self.sense.get_compass(),
                 acc['x'],
                 acc['y'],
                 acc['z'],
@@ -96,15 +96,5 @@ class DataLogging:
         plt.xlabel('Time (s)')
         plt.title(y_axis_label.split(' ', 1)[0] + ' vs Time Graph')
         plt.savefig(y_axis_label.split(' ', 1)[0] + 'vsTimeGraph.pdf')
-        
-with open('data.csv', 'w', newline='') as f:
-    writer = csv.writer(f)
-    writer.writerow(['datetime', 'temperature','pressure','humidity', 'yaw','pitch','roll', 'north', 'acc_x','acc_y','acc_z', 'gyro_x', 'gyro_y', 'gyro_z'])
-    while True:
-        delta = datetime.now() - timestamp
-        if delta.seconds > delay:
-            data = get_sense_data()
-            writer.writerow(data)
-            timestamp = datetime.now()
 
 

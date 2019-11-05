@@ -8,36 +8,60 @@ import logging
 import socketserver
 from threading import Condition
 from http import server
-import data_logging as DataLogging
+from data_logging import DataLogging
 import math
 
+
+class PageData:
+    def __init__(self):
+        self.data = """
+                    <html>
+                      <head>
+                      <script type="text/javascript">
+                        var xmlhttp;
+                        if (window.XMLHttpRequest) {  // code for IE7+, Firefox, Chrome, Opera, Safari
+                          xmlhttp=new XMLHttpRequest();
+                        }
+                        else {                        // code for IE6, IE5
+                          xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                        }
+                        function updateTable() {
+                          xmlhttp.onreadystatechange=function() {
+                            if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+                              document.getElementById("table").innerHTML=xmlhttp.responseText;
+                            }
+                          }
+                          xmlhttp.open("GET","/sensor.html",true);
+                          xmlhttp.send();
+                          }
+                        updateTable();
+                        setInterval(updateTable, 1000);
+                        </script>
+                        <title>Raspberry Pi - Emergency Vehicle</title>
+                      </head>
+                      <body>
+                        <center><h1>Raspberry Pi - Emergency Vehicle</h1></center>
+                        <center><img src="stream.mjpg" width="640" height="480"></center>
+                        <h2>Raspberry Pi - Sensor Information</h2>
+                        <div id="table">
+                        </div>
+                      </body>
+                    </html>
+                    """
 class DisplayData:
     def __init__(self):
         self.senseHat = DataLogging()
-        info = senseHat.get_sense_data()
+        info = self.senseHat.get_sense_data()
         acceleration = math.sqrt(info[8]**2 + info[9]**2 + info[10]**2) * 9.81 #Converting Gs to m/s^2
         self.data = """
                     <html>
                       <head>
                         <title>Raspberry Pi - Emergency Vehicle</title>
-                        <script type="text/javascript">
-                          window.onload = startInterval;
-
-                          function startInterval()
-                          {
-                            setInterval("startTime();",1000);
-                          }
-
-                          function startTime()
-                          {
-                            document.getElementById('table').innerHTML = document.getElementById('table').innerHTML;
-                          }
-                        </script>
                         <style>
                           table {
                             font-family: arial, sans-serif;
                             border-collapse: collapse;
-                            width: 100%;
+                            width: 100%%;
                           }
 
                           td, th {
@@ -52,9 +76,6 @@ class DisplayData:
                         </style>
                       </head>
                       <body>
-                        <center><h1>Raspberry Pi - Emergency Vehicle</h1></center>
-                        <h2>Raspberry Pi - Sensor Information</h2>
-                        <center><img src="stream.mjpg" width="640" height="480"></center>
                         <div id="table">
                         <table>
                           <tr>
@@ -70,7 +91,7 @@ class DisplayData:
                             <td>%f</td>
                           </tr>
                           <tr>
-                            <td>Humidity (%rH)</td>
+                            <td>Humidity (%%rH)</td>
                             <td>%f</td>
                           </tr>
                           <tr>
@@ -79,7 +100,7 @@ class DisplayData:
                           </tr>
                           <tr>
                             <td>Pitch (°)</td>
-                            <td>d</td>
+                            <td>%f</td>
                           </tr>
                           <tr>
                             <td>Roll (°)</td>
@@ -109,7 +130,7 @@ class DisplayData:
                         </div>
                       </body>
                     </html>
-                    """ %(info[1], info[2], info[3], info[4], info[5], info[6], info[7], acceleration, info[11], info[12], info[13])  
+                    """ %(float(info[1]), float(info[2]), float(info[3]), float(info[4]), float(info[5]), float(info[6]), float(info[7]), float(acceleration), float(info[11]), float(info[12]), float(info[13]))  
 
 class StreamingOutput(object):
     def __init__(self):
@@ -135,7 +156,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_header('Location', '/index.html')
             self.end_headers()
         elif self.path == '/index.html':
-            pageContent = DisplayData()
+            pageContent = PageData()
             content = pageContent.data.encode('utf-8')
             self.send_response(200)
             self.send_header('Content-Type', 'text/html')
@@ -163,7 +184,15 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             except Exception as e:
                 logging.warning(
                     'Removed streaming client %s: %s',
-                    self.client_address, str(e))      
+                    self.client_address, str(e))
+        elif self.path == '/sensor.html':
+            SensorInfo = DisplayData()
+            content = SensorInfo.data.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
         else:
             self.send_error(404)
             self.end_headers()
